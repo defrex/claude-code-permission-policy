@@ -18,10 +18,6 @@
 import { appendFileSync, mkdirSync, readFileSync } from "node:fs"
 import { appendFile, mkdir } from "node:fs/promises"
 import { join } from "node:path"
-import { execFile } from "node:child_process"
-import { promisify } from "node:util"
-
-const execFileAsync = promisify(execFile)
 
 type HookInput = {
   session_id: string
@@ -106,12 +102,18 @@ function readSecurityPolicy(cwd: string): string {
 
 /** Run `claude -p` with the given prompt and return the parsed JSON response. */
 async function callClaude(prompt: string): Promise<{ behavior: "allow" | "ask"; reasoning: string }> {
-  const { stdout } = await execFileAsync("claude", ["-p", "--model", "haiku", "--output-format", "json"], {
+  const proc = Bun.spawn(["claude", "-p", "--model", "haiku", "--output-format", "json"], {
+    stdin: Buffer.from(prompt),
+    stdout: "pipe",
+    stderr: "pipe",
     env: { ...process.env, CLAUDECODE: "" },
-    input: prompt,
-    maxBuffer: 1024 * 1024,
-    timeout: 50_000,
   })
+  const stdout = await new Response(proc.stdout).text()
+  const exitCode = await proc.exited
+  if (exitCode !== 0) {
+    const stderr = await new Response(proc.stderr).text()
+    throw new Error(`claude -p exited with code ${exitCode}: ${stderr.slice(0, 500)}`)
+  }
 
   // claude --output-format json returns a JSON object with a "result" field
   const parsed = JSON.parse(stdout)
