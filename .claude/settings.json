@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bun /Users/defrex/.claude/hooks/permission-hook.ts",
+            "command": "bun hook/permission-hook.ts",
             "timeout": 60
           }
         ]
