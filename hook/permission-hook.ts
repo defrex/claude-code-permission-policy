@@ -12,7 +12,7 @@
  * interactive permission prompt.
  *
  * Usage:
- *   echo '{"tool_name":"Bash","tool_input":{"command":"ls"}, ...}' | bun ~/.claude/hooks/permission-hook.ts
+ *   echo '{"tool_name":"Bash","tool_input":{"command":"ls"}, ...}' | bun .claude/hooks/permission-hook.ts
  */
 
 import { appendFileSync, mkdirSync, readFileSync } from "node:fs"
@@ -38,7 +38,7 @@ async function stdinRead(): Promise<string> {
   return Buffer.concat(chunks).toString("utf-8").trim()
 }
 
-const LOG_DIR = join(process.cwd(), "local", "logs")
+const LOG_DIR = join(process.cwd(), ".claude", "logs")
 const LOG_PATH = join(LOG_DIR, "permission-hook.log")
 
 async function ensureLogDir() {

@@ -10,11 +10,14 @@ Set up the Claude Code permission hook that uses Haiku to auto-approve safe tool
 
 ## Steps
 
-### Step 1 — Ensure global hook script
+### Step 1 — Install hook script into project
 
-The hook script lives at `~/.claude/hooks/permission-hook.ts` and is managed by this skill (always kept up to date).
+The hook script is distributed with this skill. Copy it into the target project so it works without any global dependencies.
 
-1. Verify `~/.claude/hooks/permission-hook.ts` exists. If missing, tell the user the skill installation may be incomplete.
+1. Read the hook source from `~/.claude/skills/permission-hook/permission-hook.ts`.
+2. Create `.claude/hooks/` in the current project root if it doesn't exist.
+3. Write the contents to `.claude/hooks/permission-hook.ts` — always overwrite to ensure the latest version.
+4. Tell the user: "Hook script installed/updated at `.claude/hooks/permission-hook.ts`."
 
 ### Step 2 — Create repo security policy
 
@@ -37,7 +40,7 @@ The hook script lives at `~/.claude/hooks/permission-hook.ts` and is managed by 
         "hooks": [
           {
             "type": "command",
-            "command": "bun $HOME/.claude/hooks/permission-hook.ts",
+            "command": "bun .claude/hooks/permission-hook.ts",
             "timeout": 60
           }
         ]
@@ -47,15 +50,14 @@ The hook script lives at `~/.claude/hooks/permission-hook.ts` and is managed by 
 }
 ```
 
-**Important**: Replace `$HOME` with the actual absolute home directory path (e.g., `/Users/username`). Do NOT use `~` in the path.
-
 3. If there's already a `PermissionRequest` hook entry whose matcher includes `"Bash"`, replace it. Otherwise, add a new entry.
 4. Write the updated settings back.
 
 ### Step 4 — Summary
 
 Print a summary:
-- Hook script location
-- Security policy location (and whether it was newly created or already existed)
-- Settings updated
+- Hook script: `.claude/hooks/permission-hook.ts` (installed/updated)
+- Security policy: `.claude/SECURITY_POLICY.md` (newly created or already existed)
+- Settings: `.claude/settings.json` updated with hook config
 - Remind user: "The hook uses your Claude Code login automatically."
+- Remind user: "Re-run `/permission-hook` anytime to update the hook script to the latest version."

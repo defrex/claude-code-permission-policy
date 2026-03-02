@@ -8,9 +8,11 @@ A Claude Code **PermissionRequest hook** that uses Claude Haiku as an AI securit
 
 ## Architecture
 
-- **`hook/permission-hook.ts`** — The hook entry point. Reads a JSON permission request from stdin, loads the security policy from `${cwd}/.claude/SECURITY_POLICY.md`, sends both to `claude -p --model haiku --output-format json`, parses the allow/ask decision, and writes the result JSON to stdout. On any error, exits with code 1 to fall back to the interactive permission prompt. Logs to `local/logs/permission-hook.log`.
+- **`hook/permission-hook.ts`** — The hook entry point. Reads a JSON permission request from stdin, loads the security policy from `${cwd}/.claude/SECURITY_POLICY.md`, sends both to `claude -p --model haiku --output-format json`, parses the allow/ask decision, and writes the result JSON to stdout. On any error, exits with code 1 to fall back to the interactive permission prompt. Logs to `.claude/logs/permission-hook.log`.
 
-- **`skill/SKILL.md`** — Installation skill invoked via `/permission-hook`. Walks through: verifying the global hook script at `~/.claude/hooks/permission-hook.ts`, copying the security policy template into the target repo, and configuring `.claude/settings.json`.
+- **`skill/permission-hook.ts`** — Symlink to `../hook/permission-hook.ts`. The skill reads this to copy the hook script into target projects at `.claude/hooks/permission-hook.ts`.
+
+- **`skill/SKILL.md`** — Installation skill invoked via `/permission-hook`. Copies the hook script into the target project at `.claude/hooks/permission-hook.ts`, copies the security policy template, and configures `.claude/settings.json`.
 
 - **`skill/SECURITY_POLICY_TEMPLATE.md`** — Default security policy template copied into new repos. Defines ALLOW (safe dev commands, git workflow, in-project reads/writes) and ASK (destructive ops, credential access, out-of-project access) sections.
 
@@ -29,10 +31,11 @@ A Claude Code **PermissionRequest hook** that uses Claude Haiku as an AI securit
 echo '{"tool_name":"Bash","tool_input":{"command":"ls"},"cwd":"/tmp","permission_mode":"default","session_id":"test","transcript_path":"","hook_event_name":"PermissionRequest","tool_use_id":"test"}' | bun hook/permission-hook.ts
 ```
 
-Logs are written to `local/logs/permission-hook.log`.
+Logs are written to `.claude/logs/permission-hook.log`.
 
 ## Key Design Decisions
 
 - **Fail-open to interactive prompt**: Any error (missing policy, Haiku failure, parse error) causes `process.exit(1)`, which makes Claude Code fall back to asking the user directly. The hook never silently blocks.
 - **Per-repo policy**: Security policy lives in the target repo's `.claude/SECURITY_POLICY.md`, not globally. Each project can customize what's safe.
 - **No SDK dependency**: Uses `claude -p` subprocess instead of the Anthropic SDK to reuse OAuth credentials without requiring an API key.
+- **Project-local distribution**: The skill copies the hook script into each project at `.claude/hooks/permission-hook.ts` so it works without global file dependencies. Re-run `/permission-hook` to update to the latest version.
