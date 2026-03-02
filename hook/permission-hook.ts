@@ -1,9 +1,9 @@
 /**
  * Claude Code PermissionRequest hook script.
  *
- * Reads a tool-use permission request from stdin, uses Haiku via the Anthropic
- * SDK to decide whether to auto-allow or defer to the human, and writes the
- * decision JSON to stdout.
+ * Reads a tool-use permission request from stdin, uses Haiku via `claude -p`
+ * (headless mode) to decide whether to auto-allow or defer to the human, and
+ * writes the decision JSON to stdout.
  *
  * Security policy is read from `${cwd}/.claude/SECURITY_POLICY.md`. If the
  * file is missing, exits with code 1 to fall back to the interactive prompt.
@@ -17,9 +17,11 @@
 
 import { appendFileSync, mkdirSync, readFileSync } from "node:fs"
 import { appendFile, mkdir } from "node:fs/promises"
-import { homedir } from "node:os"
 import { join } from "node:path"
-import Anthropic from "@anthropic-ai/sdk"
+import { execFile } from "node:child_process"
+import { promisify } from "node:util"
+
+const execFileAsync = promisify(execFile)
 
 type HookInput = {
   session_id: string
@@ -102,17 +104,36 @@ function readSecurityPolicy(cwd: string): string {
   }
 }
 
-/** Create an Anthropic client using Claude Code's OAuth token. */
-function createAnthropicClient(): Anthropic {
-  const credPath = join(homedir(), ".claude", ".credentials.json")
-  const creds = JSON.parse(readFileSync(credPath, "utf-8"))
-  const accessToken = creds.claudeAiOauth?.accessToken
-  if (!accessToken) {
-    throw new Error(
-      `No claudeAiOauth.accessToken found in ${credPath}. Make sure you're logged in to Claude Code.`,
-    )
+/** Run `claude -p` with the given prompt and return the parsed JSON response. */
+async function callClaude(prompt: string): Promise<{ behavior: "allow" | "ask"; reasoning: string }> {
+  const { stdout } = await execFileAsync("claude", ["-p", "--model", "haiku", "--output-format", "json"], {
+    env: { ...process.env, CLAUDECODE: "" },
+    input: prompt,
+    maxBuffer: 1024 * 1024,
+    timeout: 50_000,
+  })
+
+  // claude --output-format json returns a JSON object with a "result" field
+  const parsed = JSON.parse(stdout)
+  const text: string = parsed.result ?? parsed.text ?? stdout
+
+  // Extract JSON from the response text
+  const jsonMatch = typeof text === "string" ? text.match(/\{[\s\S]*?"behavior"[\s\S]*?\}/) : null
+  if (jsonMatch) {
+    const decision = JSON.parse(jsonMatch[0])
+    if (decision.behavior === "allow" || decision.behavior === "ask") {
+      return decision
+    }
   }
-  return new Anthropic({ authToken: accessToken })
+
+  // Fallback: look for allow/ask keywords
+  const lower = typeof text === "string" ? text.toLowerCase() : ""
+  if (lower.includes('"allow"') || lower.includes("allow")) {
+    return { behavior: "allow", reasoning: typeof text === "string" ? text.slice(0, 200) : "allowed" }
+  }
+
+  // Default to ask (safe fallback)
+  return { behavior: "ask", reasoning: typeof text === "string" ? text.slice(0, 200) : "unable to parse response" }
 }
 
 export async function main() {
@@ -140,61 +161,26 @@ export async function main() {
 
   const securityPolicy = readSecurityPolicy(input.cwd)
 
-  const systemPrompt = `You are a security gate for a coding assistant's tool use. You evaluate each
-tool invocation and decide whether to allow or defer to the human.
+  const prompt = `You are a security gate for a coding assistant's tool use. You evaluate each tool invocation and decide whether to allow or defer to the human.
 
 SECURITY POLICY:
 
-${securityPolicy}`
+${securityPolicy}
 
-  const userPrompt = `Tool: ${input.tool_name}
+---
+
+Evaluate the following tool invocation and respond with ONLY a JSON object (no other text):
+{"behavior": "allow" or "ask", "reasoning": "brief explanation"}
+
+- "allow" means the tool use is safe and should proceed automatically.
+- "ask" means it is uncertain or potentially dangerous and should defer to the human.
+
+Tool: ${input.tool_name}
 Input: ${JSON.stringify(input.tool_input, null, 2)}
 Working directory: ${input.cwd}
 Permission mode: ${input.permission_mode}`
 
-  const client = createAnthropicClient()
-
-  const response = await client.messages.create({
-    model: "claude-haiku-4-5-20251001",
-    max_tokens: 256,
-    system: systemPrompt,
-    messages: [{ role: "user", content: userPrompt }],
-    tools: [
-      {
-        name: "make_decision",
-        description:
-          "Record the permission decision for the tool invocation.",
-        input_schema: {
-          type: "object",
-          properties: {
-            behavior: {
-              type: "string",
-              enum: ["allow", "ask"],
-              description:
-                "allow: The tool use is safe and should proceed. ask: Uncertain or potentially dangerous — defer to the human.",
-            },
-            reasoning: {
-              type: "string",
-              description:
-                "Brief explanation of why this decision was made.",
-            },
-          },
-          required: ["behavior", "reasoning"],
-        },
-      },
-    ],
-    tool_choice: { type: "tool", name: "make_decision" },
-  })
-
-  const toolBlock = response.content.find((b) => b.type === "tool_use")
-  if (!toolBlock || toolBlock.type !== "tool_use") {
-    throw new Error("No tool_use block in response")
-  }
-
-  const decision = toolBlock.input as {
-    behavior: "allow" | "ask"
-    reasoning: string
-  }
+  const decision = await callClaude(prompt)
 
   await log(
     `[${timestamp()}] ${decision.behavior.toUpperCase()}: ${decision.reasoning}\n`,

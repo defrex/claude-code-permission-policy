@@ -1,7 +1,7 @@
 ---
 name: permission-hook
 description: Install or update the AI permission hook for auto-approving safe tool invocations.
-allowed-tools: Bash(bun install*), Bash(ls *), Bash(mkdir *), Read, Write, Edit, Glob
+allowed-tools: Bash(ls *), Bash(mkdir *), Read, Write, Edit, Glob
 ---
 
 Set up the Claude Code permission hook that uses Haiku to auto-approve safe tool invocations based on a per-repo security policy.
@@ -10,12 +10,11 @@ Set up the Claude Code permission hook that uses Haiku to auto-approve safe tool
 
 ## Steps
 
-### Step 1 — Ensure global hook script + deps
+### Step 1 — Ensure global hook script
 
 The hook script lives at `~/.claude/hooks/permission-hook.ts` and is managed by this skill (always kept up to date).
 
 1. Verify `~/.claude/hooks/permission-hook.ts` exists. If missing, tell the user the skill installation may be incomplete.
-2. Check if `~/.claude/hooks/node_modules` exists. If not, run `bun install` in `~/.claude/hooks/`.
 
 ### Step 2 — Create repo security policy
 
