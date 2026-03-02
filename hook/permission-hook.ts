@@ -17,6 +17,7 @@
 
 import { appendFileSync, mkdirSync, readFileSync } from "node:fs"
 import { appendFile, mkdir } from "node:fs/promises"
+import { homedir } from "node:os"
 import { join } from "node:path"
 import Anthropic from "@anthropic-ai/sdk"
 
@@ -101,6 +102,19 @@ function readSecurityPolicy(cwd: string): string {
   }
 }
 
+/** Create an Anthropic client using Claude Code's OAuth token. */
+function createAnthropicClient(): Anthropic {
+  const credPath = join(homedir(), ".claude", ".credentials.json")
+  const creds = JSON.parse(readFileSync(credPath, "utf-8"))
+  const accessToken = creds.claudeAiOauth?.accessToken
+  if (!accessToken) {
+    throw new Error(
+      `No claudeAiOauth.accessToken found in ${credPath}. Make sure you're logged in to Claude Code.`,
+    )
+  }
+  return new Anthropic({ authToken: accessToken })
+}
+
 export async function main() {
   logSync(`[${timestamp()}] HOOK INVOKED (pid: ${process.pid})`)
 
@@ -138,7 +152,7 @@ Input: ${JSON.stringify(input.tool_input, null, 2)}
 Working directory: ${input.cwd}
 Permission mode: ${input.permission_mode}`
 
-  const client = new Anthropic()
+  const client = createAnthropicClient()
 
   const response = await client.messages.create({
     model: "claude-haiku-4-5-20251001",

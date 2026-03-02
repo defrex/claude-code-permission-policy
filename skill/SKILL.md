@@ -6,7 +6,7 @@ allowed-tools: Bash(bun install*), Bash(ls *), Bash(mkdir *), Read, Write, Edit,
 
 Set up the Claude Code permission hook that uses Haiku to auto-approve safe tool invocations based on a per-repo security policy.
 
-**Prerequisite**: `ANTHROPIC_API_KEY` must be set in your environment for the hook to work. If it's missing, the hook silently falls back to the interactive permission prompt.
+**Authentication**: The hook automatically reuses your Claude Code login (OAuth).
 
 ## Steps
 
@@ -59,4 +59,4 @@ Print a summary:
 - Hook script location
 - Security policy location (and whether it was newly created or already existed)
 - Settings updated
-- Remind user: "Make sure `ANTHROPIC_API_KEY` is set in your environment for the hook to work."
+- Remind user: "The hook uses your Claude Code login automatically."
