@@ -56,7 +56,7 @@ The hook script is distributed with this skill. Copy it into the target project 
 ### Step 4 — Summary
 
 Print a summary:
-- Hook script: `.claude/hooks/permission-policy.ts` (installed/updated)
+- Hook script: `.claude/skills/permission-policy.ts` (installed/updated)
 - Permission policy: `.claude/PERMISSION_POLICY.md` (newly created or already existed)
 - Settings: `.claude/settings.json` updated with hook config
 - Remind user: "The hook uses your Claude Code login automatically."

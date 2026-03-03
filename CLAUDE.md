@@ -10,7 +10,7 @@ A Claude Code **PermissionRequest hook** that uses Claude Haiku as an AI securit
 
 - **`hook/permission-policy.ts`** — The hook entry point. Reads a JSON permission request from stdin, loads the permission policy from `${cwd}/.claude/PERMISSION_POLICY.md`, sends both to `claude -p --model haiku --output-format json`, parses the allow/ask decision, and writes the result JSON to stdout. On any error, exits with code 1 to fall back to the interactive permission prompt. Logs to `.claude/logs/permission-policy.log`.
 
-- **`skill/permission-policy.ts`** — Symlink to `../hook/permission-policy.ts`. The skill reads this to copy the hook script into target projects at `.claude/hooks/permission-policy.ts`.
+- **`skill/permission-policy.ts`** — A copy of the hook script. The skill reads this to copy it into target projects at `.claude/hooks/permission-policy.ts`.
 
 - **`skill/SKILL.md`** — Installation skill invoked via `/permission-policy`. Copies the hook script into the target project at `.claude/hooks/permission-policy.ts`, copies the permission policy template, and configures `.claude/settings.json`.
 
