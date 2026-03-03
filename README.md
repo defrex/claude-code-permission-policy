@@ -52,3 +52,13 @@ The hook logs every decision to `.claude/logs/permission-policy.log`. Tail it to
 ```
 tail -f .claude/logs/permission-policy.log
 ```
+
+## Remix
+
+Once this skill is installed, it can easily be customized.
+
+- **Use the Agent SDK instead of `claude -p`.** The CLI subprocess adds ~10s per permission check. The [Agent SDK](https://docs.anthropic.com/en/docs/claude-code/sdk) is significantly faster, but requires an API key rather than piggyback on OAuth.
+
+- **Swap in Gemini Flash.** Gemini Flash works great for this kind of policy evaluation. Pair it with a lightweight [AI SDK](https://ai-sdk.dev/) harness and you've got a fast, cheap gatekeeper.
+
+- **Port to your preferred language.** The hook is just "read JSON from stdin, call an LLM, write JSON to stdout." If you'd rather use Python or anything else, porting is easy. Just ask the bot!
