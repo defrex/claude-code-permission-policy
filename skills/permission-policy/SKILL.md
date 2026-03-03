@@ -26,7 +26,13 @@ The hook script is distributed with this skill. Copy it into the target project 
 3. If it doesn't exist, copy the contents of `~/.claude/skills/permission-policy/PERMISSION_POLICY_TEMPLATE.md` to `.claude/PERMISSION_POLICY.md` in the current project root.
 4. Tell the user to customize the policy for their project.
 
-### Step 3 — Configure hook in settings
+### Step 3 — Gitignore log file
+
+1. Check if `.claude/logs/` is already covered by a `.gitignore` entry in the current project root (e.g. `.claude/logs/` or `.claude/logs`).
+2. If not, append `.claude/logs/` on a new line to the project root `.gitignore` (create the file if it doesn't exist).
+3. Tell the user: "Added `.claude/logs/` to `.gitignore`."
+
+### Step 4 — Configure hook in settings
 
 1. Read `.claude/settings.json` in the current project root (or treat as `{}` if it doesn't exist).
 2. Merge the following hook configuration, preserving all existing settings:
@@ -53,7 +59,7 @@ The hook script is distributed with this skill. Copy it into the target project 
 3. If there's already a `PermissionRequest` hook entry whose matcher includes `"Bash"`, replace it. Otherwise, add a new entry.
 4. Write the updated settings back.
 
-### Step 4 — Summary
+### Step 5 — Summary
 
 Print a summary:
 - Hook script: `.claude/skills/permission-policy.ts` (installed/updated)
