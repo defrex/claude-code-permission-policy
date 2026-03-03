@@ -8,15 +8,15 @@ A Claude Code **PermissionRequest hook** that uses Claude Haiku as an AI securit
 
 ## Architecture
 
-- **`skills/permission-policy/permission-policy.ts`** — The hook entry point. Reads a JSON permission request from stdin, loads the permission policy from `${cwd}/.claude/PERMISSION_POLICY.md`, sends both to `claude -p --model haiku --output-format json`, parses the allow/ask decision, and writes the result JSON to stdout. On any error, exits with code 1 to fall back to the interactive permission prompt. Logs to `.claude/logs/permission-policy.log`. The skill reads this to copy it into target projects at `.claude/hooks/permission-policy.ts`.
+- **`skills/permission-policy/permission-policy.ts`** — The hook entry point. Reads a JSON permission request from stdin, loads the permission policy from `${cwd}/.claude/PERMISSION_POLICY.md`, sends both to `claude -p --model haiku --output-format json`, parses the allow/ask decision, and writes the result JSON to stdout. On any error, exits with code 1 to fall back to the interactive permission prompt. Logs to `.claude/logs/permission-policy.log`.
 
-- **`skills/permission-policy/SKILL.md`** — Installation skill invoked via `/permission-policy`. Copies the hook script into the target project at `.claude/hooks/permission-policy.ts`, copies the permission policy template, and configures `.claude/settings.json`.
+- **`skills/permission-policy/SKILL.md`** — Installation skill invoked via `/permission-policy`. Copies the permission policy template and configures `.claude/settings.json` to reference the hook script directly from the skill directory.
 
 - **`skills/permission-policy/PERMISSION_POLICY_TEMPLATE.md`** — Default permission policy template copied into new repos. Defines ALLOW (safe dev commands, git workflow, in-project reads/writes) and ASK (destructive ops, credential access, out-of-project access) sections.
 
 - **`.claude/PERMISSION_POLICY.md`** — This repo's own permission policy (an instance of the template).
 
-- **`.claude/settings.json`** — Configures the PermissionRequest hook to run `bun skills/permission-policy/permission-policy.ts` with a 60s timeout.
+- **`.claude/settings.json`** — Configures the PermissionRequest hook to run `bun .claude/skills/permission-policy/permission-policy.ts` with a 60s timeout.
 
 ## Runtime
 
@@ -36,4 +36,4 @@ Logs are written to `.claude/logs/permission-policy.log`.
 - **Fail-open to interactive prompt**: Any error (missing policy, Haiku failure, parse error) causes `process.exit(1)`, which makes Claude Code fall back to asking the user directly. The hook never silently blocks.
 - **Per-repo policy**: Permission policy lives in the target repo's `.claude/PERMISSION_POLICY.md`, not globally. Each project can customize what's safe.
 - **No SDK dependency**: Uses `claude -p` subprocess instead of the Anthropic SDK to reuse OAuth credentials without requiring an API key.
-- **Project-local distribution**: The skill copies the hook script into each project at `.claude/hooks/permission-policy.ts` so it works without global file dependencies. Re-run `/permission-policy` to update to the latest version.
+- **Skill-local hook**: The settings reference the hook script directly from `.claude/skills/permission-policy/`, so no file copying is needed. Updates to the skill are picked up automatically.
