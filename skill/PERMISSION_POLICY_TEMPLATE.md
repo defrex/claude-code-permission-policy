@@ -1,6 +1,6 @@
-# Security Policy
+# Permission Policy
 
-This file defines the security policy for the Claude Code permission hook.
+This file defines the permission policy for the Claude Code permission hook.
 Edit this file to customize which tool invocations are auto-approved vs.
 deferred to the human.
 

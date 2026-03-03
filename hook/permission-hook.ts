@@ -5,7 +5,7 @@
  * (headless mode) to decide whether to auto-allow or defer to the human, and
  * writes the decision JSON to stdout.
  *
- * Security policy is read from `${cwd}/.claude/SECURITY_POLICY.md`. If the
+ * Permission policy is read from `${cwd}/.claude/PERMISSION_POLICY.md`. If the
  * file is missing, exits with code 1 to fall back to the interactive prompt.
  *
  * On any error, exits with code 1 so Claude Code falls back to the normal
@@ -82,8 +82,8 @@ function timestamp(): string {
   return new Date().toISOString().replace("T", " ").replace("Z", "")
 }
 
-function readSecurityPolicy(cwd: string): string {
-  const policyPath = join(cwd, ".claude", "SECURITY_POLICY.md")
+function readPermissionPolicy(cwd: string): string {
+  const policyPath = join(cwd, ".claude", "PERMISSION_POLICY.md")
   try {
     return readFileSync(policyPath, "utf-8")
   } catch (err) {
@@ -93,7 +93,7 @@ function readSecurityPolicy(cwd: string): string {
         : undefined
     if (code === "ENOENT") {
       throw new Error(
-        `Security policy not found at ${policyPath}. Run /permission-hook to create one.`,
+        `Permission policy not found at ${policyPath}. Run /permission-hook to create one.`,
       )
     }
     throw err
@@ -161,13 +161,13 @@ export async function main() {
       `  cwd: ${input.cwd}`,
   )
 
-  const securityPolicy = readSecurityPolicy(input.cwd)
+  const permissionPolicy = readPermissionPolicy(input.cwd)
 
   const prompt = `You are a security gate for a coding assistant's tool use. You evaluate each tool invocation and decide whether to allow or defer to the human.
 
-SECURITY POLICY:
+PERMISSION POLICY:
 
-${securityPolicy}
+${permissionPolicy}
 
 ---
 

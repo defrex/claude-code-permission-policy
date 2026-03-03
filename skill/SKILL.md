@@ -4,7 +4,7 @@ description: Install or update the AI permission hook for auto-approving safe to
 allowed-tools: Bash(ls *), Bash(mkdir *), Read, Write, Edit, Glob
 ---
 
-Set up the Claude Code permission hook that uses Haiku to auto-approve safe tool invocations based on a per-repo security policy.
+Set up the Claude Code permission hook that uses Haiku to auto-approve safe tool invocations based on a per-repo permission policy.
 
 **Authentication**: The hook automatically reuses your Claude Code login (OAuth).
 
@@ -19,11 +19,11 @@ The hook script is distributed with this skill. Copy it into the target project 
 3. Write the contents to `.claude/hooks/permission-hook.ts` — always overwrite to ensure the latest version.
 4. Tell the user: "Hook script installed/updated at `.claude/hooks/permission-hook.ts`."
 
-### Step 2 — Create repo security policy
+### Step 2 — Create repo permission policy
 
-1. Check if `.claude/SECURITY_POLICY.md` exists in the current project root.
-2. If it already exists, tell the user: "Security policy already exists at `.claude/SECURITY_POLICY.md` — skipping. Edit it to customize."
-3. If it doesn't exist, copy the contents of `~/.claude/skills/permission-hook/SECURITY_POLICY_TEMPLATE.md` to `.claude/SECURITY_POLICY.md` in the current project root.
+1. Check if `.claude/PERMISSION_POLICY.md` exists in the current project root.
+2. If it already exists, tell the user: "Permission policy already exists at `.claude/PERMISSION_POLICY.md` — skipping. Edit it to customize."
+3. If it doesn't exist, copy the contents of `~/.claude/skills/permission-hook/PERMISSION_POLICY_TEMPLATE.md` to `.claude/PERMISSION_POLICY.md` in the current project root.
 4. Tell the user to customize the policy for their project.
 
 ### Step 3 — Configure hook in settings
@@ -57,7 +57,7 @@ The hook script is distributed with this skill. Copy it into the target project 
 
 Print a summary:
 - Hook script: `.claude/hooks/permission-hook.ts` (installed/updated)
-- Security policy: `.claude/SECURITY_POLICY.md` (newly created or already existed)
+- Permission policy: `.claude/PERMISSION_POLICY.md` (newly created or already existed)
 - Settings: `.claude/settings.json` updated with hook config
 - Remind user: "The hook uses your Claude Code login automatically."
 - Remind user: "Re-run `/permission-hook` anytime to update the hook script to the latest version."
