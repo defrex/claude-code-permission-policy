@@ -57,7 +57,7 @@ tail -f .claude/logs/permission-policy.log
 
 Once this skill is installed, it can easily be customized.
 
-- **Use the Agent SDK instead of `claude -p`.** The CLI subprocess adds ~10s per permission check. The [Agent SDK](https://docs.anthropic.com/en/docs/claude-code/sdk) is significantly faster, but requires an API key rather than piggyback on OAuth.
+- **Use the Agent SDK instead of `claude -p`.** The claude CLI adds ~10s per permission check. The [Agent SDK](https://docs.anthropic.com/en/docs/claude-code/sdk) is significantly faster, but requires an API key rather than piggyback on OAuth.
 
 - **Swap in Gemini Flash.** Gemini Flash works great for this kind of policy evaluation. Pair it with a lightweight [AI SDK](https://ai-sdk.dev/) harness and you've got a fast, cheap gatekeeper.
 
