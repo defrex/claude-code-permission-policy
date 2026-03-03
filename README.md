@@ -1,8 +1,8 @@
 <div align="center">
 
-## Claude Code Permission Policy
+### Claude Code Permission Policy
 
-### Live Less Dangerously
+Live Less Dangerously
 
 </div>
 
