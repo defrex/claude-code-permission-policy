@@ -2,7 +2,9 @@
 
 ### Claude Code Permission Policy
 
-Live Less Dangerously
+*Live Less Dangerously*
+
+&nbsp;
 
 </div>
 
