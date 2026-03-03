@@ -76,9 +76,5 @@ Set up the Claude Code permission hook that uses Haiku to auto-approve safe tool
 
 ### Step 5 — Summary
 
-Print a summary:
-- Runtime: which runtime/language is being used for the hook
-- Permission policy: `.claude/PERMISSION_POLICY.md` (newly created or already existed)
-- Settings: `.claude/settings.json` updated with hook config
-- If ported: location of the generated hook script (e.g. `.claude/hooks/permission-policy.py`)
-- Remind user: "The hook uses your Claude Code login automatically."
+1. Tell the user about `.claude/PERMISSION_POLICY.md` — explain that this is where they control what gets auto-approved vs. deferred to the human. Read the policy file and provide a brief summary of what it currently allows and what it asks about.
+2. Tell the user about the log file at `.claude/logs/permission-policy.log`. Encourage them to run `tail -f .claude/logs/permission-policy.log` in a separate terminal if they want to follow the decisions being made in real time.
