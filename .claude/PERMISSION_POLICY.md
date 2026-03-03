@@ -1,8 +1,8 @@
 # Permission Policy
 
 This file defines the permission policy for the Claude Code permission hook.
-Edit this file to customize which tool invocations are auto-approved vs.
-deferred to the human.
+Edit this file to customize which tool invocations are auto-approved, denied,
+or deferred to the human.
 
 > This policy covers the following tools: Bash, Read, Write, Edit, Glob,
 > Grep, WebFetch, WebSearch.
@@ -92,6 +92,22 @@ These operations should defer to the human for approval:
 
 ### WebSearch
 - Searching for topics unrelated to the project or development
+
+## DENY
+
+These operations should be blocked outright — never allow them, even if the
+human approves:
+
+### Bash
+- Catastrophic deletions: `rm -rf /`, `rm -rf ~`, or any command that would
+  wipe the root filesystem or home directory
+- Downloading and executing untrusted remote scripts (e.g. `curl ... | bash`,
+  `wget ... | sh`, or piping remote content to an interpreter)
+- Exfiltrating environment variables or secrets to external services (e.g.
+  `curl` or `wget` with env vars, tokens, or key material in the URL or body)
+- Disabling or bypassing security tools, hooks, or audit mechanisms (e.g.
+  removing hook configurations, deleting security policy files, `--no-verify`
+  on hooks designed for security)
 
 ## DEFAULT BEHAVIOR
 

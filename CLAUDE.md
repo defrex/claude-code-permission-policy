@@ -4,15 +4,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-A Claude Code **PermissionRequest hook** that uses Claude Haiku as an AI security gatekeeper. It intercepts tool invocations (Bash, Read, Write, Edit, Glob, Grep, WebFetch, WebSearch), evaluates them against a per-repository permission policy (`.claude/PERMISSION_POLICY.md`), and either auto-approves safe operations or defers to the human. Authentication piggybacks on the user's existing Claude Code OAuth login — no API key needed.
+A Claude Code **PermissionRequest hook** that uses Claude Haiku as an AI security gatekeeper. It intercepts tool invocations (Bash, Read, Write, Edit, Glob, Grep, WebFetch, WebSearch), evaluates them against a per-repository permission policy (`.claude/PERMISSION_POLICY.md`), and either auto-approves safe operations, denies dangerous ones outright, or defers to the human. Authentication piggybacks on the user's existing Claude Code OAuth login — no API key needed.
 
 ## Architecture
 
-- **`skills/permission-policy/permission-policy.ts`** — The hook entry point. Reads a JSON permission request from stdin, loads the permission policy from `${cwd}/.claude/PERMISSION_POLICY.md`, sends both to `claude -p --model haiku --output-format json`, parses the allow/ask decision, and writes the result JSON to stdout. On any error, exits with code 1 to fall back to the interactive permission prompt. Logs to `.claude/logs/permission-policy.log`.
+- **`skills/permission-policy/permission-policy.ts`** — The hook entry point. Reads a JSON permission request from stdin, loads the permission policy from `${cwd}/.claude/PERMISSION_POLICY.md`, sends both to `claude -p --model haiku --output-format json`, parses the allow/deny/ask decision, and writes the result JSON to stdout. On any error, exits with code 1 to fall back to the interactive permission prompt. Logs to `.claude/logs/permission-policy.log`.
 
 - **`skills/permission-policy/SKILL.md`** — Installation skill invoked via `/permission-policy`. Copies the permission policy template and configures `.claude/settings.json` to reference the hook script directly from the skill directory.
 
-- **`skills/permission-policy/PERMISSION_POLICY_TEMPLATE.md`** — Default permission policy template copied into new repos. Defines ALLOW (safe dev commands, git workflow, in-project reads/writes) and ASK (destructive ops, credential access, out-of-project access) sections.
+- **`skills/permission-policy/PERMISSION_POLICY_TEMPLATE.md`** — Default permission policy template copied into new repos. Defines ALLOW (safe dev commands, git workflow, in-project reads/writes), DENY (catastrophic deletions, remote script execution, secret exfiltration), and ASK (destructive ops, credential access, out-of-project access) sections.
 
 - **`.claude/PERMISSION_POLICY.md`** — This repo's own permission policy (an instance of the template).
 

@@ -2,8 +2,8 @@
  * Claude Code PermissionRequest hook script.
  *
  * Reads a tool-use permission request from stdin, uses Haiku via `claude -p`
- * (headless mode) to decide whether to auto-allow or defer to the human, and
- * writes the decision JSON to stdout.
+ * (headless mode) to decide whether to auto-allow, deny, or defer to the human,
+ * and writes the decision JSON to stdout.
  *
  * Permission policy is read from `${cwd}/.claude/PERMISSION_POLICY.md`. If the
  * file is missing, exits with code 1 to fall back to the interactive prompt.
@@ -91,7 +91,7 @@ function readPermissionPolicy(cwd: string): string {
 }
 
 /** Run `claude -p` with the given prompt and return the parsed JSON response. */
-async function callClaude(prompt: string): Promise<{ behavior: "allow" | "ask"; reasoning: string }> {
+async function callClaude(prompt: string): Promise<{ behavior: "allow" | "deny" | "ask"; reasoning: string }> {
   const proc = Bun.spawn(["claude", "-p", "--model", "haiku", "--output-format", "json"], {
     stdin: Buffer.from(prompt),
     stdout: "pipe",
@@ -113,13 +113,16 @@ async function callClaude(prompt: string): Promise<{ behavior: "allow" | "ask"; 
   const jsonMatch = typeof text === "string" ? text.match(/\{[\s\S]*?"behavior"[\s\S]*?\}/) : null
   if (jsonMatch) {
     const decision = JSON.parse(jsonMatch[0])
-    if (decision.behavior === "allow" || decision.behavior === "ask") {
+    if (decision.behavior === "allow" || decision.behavior === "deny" || decision.behavior === "ask") {
       return decision
     }
   }
 
-  // Fallback: look for allow/ask keywords
+  // Fallback: look for deny/allow/ask keywords
   const lower = typeof text === "string" ? text.toLowerCase() : ""
+  if (lower.includes('"deny"') || lower.includes("deny")) {
+    return { behavior: "deny", reasoning: typeof text === "string" ? text.slice(0, 200) : "denied" }
+  }
   if (lower.includes('"allow"') || lower.includes("allow")) {
     return { behavior: "allow", reasoning: typeof text === "string" ? text.slice(0, 200) : "allowed" }
   }
@@ -166,9 +169,10 @@ ${permissionPolicy}
 ---
 
 Evaluate the following tool invocation and respond with ONLY a JSON object (no other text):
-{"behavior": "allow" or "ask", "reasoning": "brief explanation"}
+{"behavior": "allow" or "deny" or "ask", "reasoning": "brief explanation"}
 
 - "allow" means the tool use is safe and should proceed automatically.
+- "deny" means the tool use violates policy and should be blocked outright.
 - "ask" means it is uncertain or potentially dangerous and should defer to the human.
 
 Tool: ${input.tool_name}
@@ -194,6 +198,7 @@ Permission mode: ${input.permission_mode}`
       hookEventName: "PermissionRequest",
       decision: {
         behavior: decision.behavior,
+        ...(decision.behavior === "deny" ? { message: decision.reasoning } : {}),
       },
     },
   }

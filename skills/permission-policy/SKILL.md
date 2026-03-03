@@ -76,5 +76,5 @@ Set up the Claude Code permission hook that uses Haiku to auto-approve safe tool
 
 ### Step 5 — Summary
 
-1. Tell the user about `.claude/PERMISSION_POLICY.md` — explain that this is where they control what gets auto-approved vs. deferred to the human. Read the policy file and provide a brief summary of what it currently allows and what it asks about.
+1. Tell the user about `.claude/PERMISSION_POLICY.md` — explain that this is where they control what gets auto-approved, denied outright, or deferred to the human. Read the policy file and provide a brief summary of what it currently allows, denies, and asks about.
 2. Tell the user about the log file at `.claude/logs/permission-policy.log`. Encourage them to run `tail -f .claude/logs/permission-policy.log` in a separate terminal if they want to follow the decisions being made in real time.
