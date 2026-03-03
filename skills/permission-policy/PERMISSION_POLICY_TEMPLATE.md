@@ -95,8 +95,7 @@ These operations should defer to the human for approval:
 
 ## DENY
 
-These operations should be blocked outright — never allow them, even if the
-human approves:
+These operations should be blocked outright — never allow them.
 
 ### Bash
 - Catastrophic deletions: `rm -rf /`, `rm -rf ~`, or any command that would
