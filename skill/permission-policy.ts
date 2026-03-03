@@ -64,18 +64,8 @@ function logSync(message: string) {
   }
 }
 
-function formatToolInput(toolInput: Record<string, unknown>): string {
-  const entries = Object.entries(toolInput)
-  if (entries.length === 1) {
-    const [key, value] = entries[0]
-    return `${key}: ${typeof value === "string" ? value : JSON.stringify(value)}`
-  }
-  return entries
-    .map(
-      ([key, value]) =>
-        `  ${key}: ${typeof value === "string" ? value : JSON.stringify(value)}`,
-    )
-    .join("\n")
+function formatField(label: string, value: string): string {
+  return `${label}:`.padEnd(16) + value
 }
 
 function timestamp(): string {
@@ -139,7 +129,8 @@ async function callClaude(prompt: string): Promise<{ behavior: "allow" | "ask"; 
 }
 
 export async function main() {
-  logSync(`[${timestamp()}] HOOK INVOKED (pid: ${process.pid})`)
+  const startTime = Date.now()
+  logSync(`[${timestamp()}]`)
 
   const raw = await stdinRead()
   if (!raw) {
@@ -153,12 +144,15 @@ export async function main() {
     throw new Error(`Failed to parse stdin as JSON: ${raw.slice(0, 200)}`)
   }
 
-  const toolInputStr = formatToolInput(input.tool_input)
+  const toolInputLines = Object.entries(input.tool_input)
+    .map(([key, value]) => formatField(key, typeof value === "string" ? value : JSON.stringify(value)))
 
   await log(
-    `[${timestamp()}] PERMISSION REQUEST: ${input.tool_name}\n` +
-      `  ${toolInputStr}\n` +
-      `  cwd: ${input.cwd}`,
+    [
+      formatField("tool", input.tool_name),
+      ...toolInputLines,
+      formatField("cwd", input.cwd),
+    ].join("\n"),
   )
 
   const permissionPolicy = readPermissionPolicy(input.cwd)
@@ -184,8 +178,15 @@ Permission mode: ${input.permission_mode}`
 
   const decision = await callClaude(prompt)
 
+  const elapsed = Math.round((Date.now() - startTime) / 1000)
+
   await log(
-    `[${timestamp()}] ${decision.behavior.toUpperCase()}: ${decision.reasoning}\n`,
+    "\n" +
+    [
+      formatField("decision", decision.behavior.toUpperCase()),
+      formatField("reason", decision.reasoning),
+      formatField("elapsed", `${elapsed}s`),
+    ].join("\n") + "\n",
   )
 
   const output = {
