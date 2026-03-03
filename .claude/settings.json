@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bun hook/permission-hook.ts",
+            "command": "bun skill/permission-policy.ts",
             "timeout": 60
           }
         ]

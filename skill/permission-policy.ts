@@ -12,7 +12,7 @@
  * interactive permission prompt.
  *
  * Usage:
- *   echo '{"tool_name":"Bash","tool_input":{"command":"ls"}, ...}' | bun .claude/hooks/permission-hook.ts
+ *   echo '{"tool_name":"Bash","tool_input":{"command":"ls"}, ...}' | bun .claude/hooks/permission-policy.ts
  */
 
 import { appendFileSync, mkdirSync, readFileSync } from "node:fs"
@@ -39,7 +39,7 @@ async function stdinRead(): Promise<string> {
 }
 
 const LOG_DIR = join(process.cwd(), ".claude", "logs")
-const LOG_PATH = join(LOG_DIR, "permission-hook.log")
+const LOG_PATH = join(LOG_DIR, "permission-policy.log")
 
 async function ensureLogDir() {
   await mkdir(LOG_DIR, { recursive: true })
@@ -93,7 +93,7 @@ function readPermissionPolicy(cwd: string): string {
         : undefined
     if (code === "ENOENT") {
       throw new Error(
-        `Permission policy not found at ${policyPath}. Run /permission-hook to create one.`,
+        `Permission policy not found at ${policyPath}. Run /permission-policy to create one.`,
       )
     }
     throw err

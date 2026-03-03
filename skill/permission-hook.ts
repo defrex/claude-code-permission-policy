@@ -1,1 +1,0 @@
-../hook/permission-hook.ts
